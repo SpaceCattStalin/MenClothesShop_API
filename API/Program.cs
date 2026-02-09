@@ -1,11 +1,13 @@
 
+using Amazon.Runtime;
+using Amazon.S3;
+using API.Background_Tasks;
 using API.Features;
-using Common.Commons;
-using Common.Interfaces;
-using Microsoft.AspNetCore.Identity;
+using API.Interfaces;
+using API.Services;
+using API.Services.API.Services;
 using Repositories.ApplicationDbContext;
-using Repositories.Models;
-using System.Threading.Tasks;
+using Services;
 
 namespace MenClothesShop_API
 {
@@ -26,8 +28,31 @@ namespace MenClothesShop_API
             //string connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
             //builder.Services.AddDbContext<AppDbContext>(options => options.UseSqlServer(connectionString));
             builder.Services.AddDbContext<AppDbContext>();
-            builder.Services.AddIdentity<User, IdentityRole>().AddEntityFrameworkStores<AppDbContext>();
+            //builder.Services.AddIdentity<User, IdentityRole>().AddEntityFrameworkStores<AppDbContext>();
 
+            builder.Services.AddScoped<ICartService, CartService>();
+            builder.Services.AddScoped<IInventoryService, InventoryService>();
+            builder.Services.AddScoped<ISizeService, SizeService>();
+
+            builder.Services.AddHostedService<CartExpirationService>();
+
+            var credentials = new BasicAWSCredentials(
+                    builder.Configuration.GetValue<string>("MinIO:AccessKey"),
+                    builder.Configuration.GetValue<string>("MinIO:SecretKey")
+            );
+
+            builder.Services.AddSingleton<IAmazonS3>(sp =>
+            {
+                var config = new AmazonS3Config
+                {
+                    ServiceURL = "http://localhost:9000",
+                    ForcePathStyle = true,
+                };
+
+                return new AmazonS3Client(credentials, config);
+            });
+
+            builder.Services.AddScoped<ImageService>();
 
             var app = builder.Build();
 
@@ -48,6 +73,12 @@ namespace MenClothesShop_API
             app.UseAuthorization();
 
             AuthenticationEndpoints.MapEndpoint(app);
+            CategoryEndpoint.MapEndpoint(app);
+            ProductByCategoryEndpoint.MapEndpoints(app);
+            ProductDetailEndpoint.MapEndpoint(app);
+            CartEndpoints.MapEndpoint(app);
+            //AddToCartEndpoints.MapEndpoint(app);
+
 
             app.Run();
         }

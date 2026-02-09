@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Repositories.ApplicationDbContext;
 
@@ -11,9 +12,11 @@ using Repositories.ApplicationDbContext;
 namespace Repositories.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260201020739_Add Category image uri")]
+    partial class AddCategoryimageuri
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -21,62 +24,6 @@ namespace Repositories.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 64);
 
             MySqlModelBuilderExtensions.AutoIncrementColumns(modelBuilder);
-
-            modelBuilder.Entity("Repositories.Models.Cart", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime");
-
-                    b.Property<DateTime>("UpdatedAt")
-                        .HasColumnType("datetime");
-
-                    b.Property<int?>("UserId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("UserId")
-                        .IsUnique();
-
-                    b.ToTable("Cart");
-                });
-
-            modelBuilder.Entity("Repositories.Models.CartItem", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("CartId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("ProductVariantId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("Quantity")
-                        .HasColumnType("int");
-
-                    b.Property<int>("SizeId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("CartId");
-
-                    b.HasIndex("ProductVariantId");
-
-                    b.HasIndex("SizeId");
-
-                    b.ToTable("CartItem");
-                });
 
             modelBuilder.Entity("Repositories.Models.Category", b =>
                 {
@@ -222,16 +169,16 @@ namespace Repositories.Migrations
 
                     MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<int?>("ProductVariantId")
+                        .HasColumnType("int");
+
                     b.Property<string>("Url")
                         .IsRequired()
                         .HasColumnType("longtext");
 
-                    b.Property<int>("VariantId")
-                        .HasColumnType("int");
-
                     b.HasKey("Id");
 
-                    b.HasIndex("VariantId");
+                    b.HasIndex("ProductVariantId");
 
                     b.ToTable("ProductImages");
                 });
@@ -321,42 +268,6 @@ namespace Repositories.Migrations
                     b.ToTable("Users");
                 });
 
-            modelBuilder.Entity("Repositories.Models.Cart", b =>
-                {
-                    b.HasOne("Repositories.Models.User", "User")
-                        .WithOne("Cart")
-                        .HasForeignKey("Repositories.Models.Cart", "UserId");
-
-                    b.Navigation("User");
-                });
-
-            modelBuilder.Entity("Repositories.Models.CartItem", b =>
-                {
-                    b.HasOne("Repositories.Models.Cart", "Cart")
-                        .WithMany("Items")
-                        .HasForeignKey("CartId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Repositories.Models.ProductVariant", "ProductVariant")
-                        .WithMany()
-                        .HasForeignKey("ProductVariantId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Repositories.Models.Size", "Size")
-                        .WithMany()
-                        .HasForeignKey("SizeId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Cart");
-
-                    b.Navigation("ProductVariant");
-
-                    b.Navigation("Size");
-                });
-
             modelBuilder.Entity("Repositories.Models.Order", b =>
                 {
                     b.HasOne("Repositories.Models.User", "User")
@@ -411,13 +322,9 @@ namespace Repositories.Migrations
 
             modelBuilder.Entity("Repositories.Models.ProductImage", b =>
                 {
-                    b.HasOne("Repositories.Models.ProductVariant", "Variant")
+                    b.HasOne("Repositories.Models.ProductVariant", null)
                         .WithMany("Images")
-                        .HasForeignKey("VariantId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Variant");
+                        .HasForeignKey("ProductVariantId");
                 });
 
             modelBuilder.Entity("Repositories.Models.ProductSize", b =>
@@ -458,11 +365,6 @@ namespace Repositories.Migrations
                     b.Navigation("MainProduct");
                 });
 
-            modelBuilder.Entity("Repositories.Models.Cart", b =>
-                {
-                    b.Navigation("Items");
-                });
-
             modelBuilder.Entity("Repositories.Models.Category", b =>
                 {
                     b.Navigation("Products");
@@ -496,9 +398,6 @@ namespace Repositories.Migrations
 
             modelBuilder.Entity("Repositories.Models.User", b =>
                 {
-                    b.Navigation("Cart")
-                        .IsRequired();
-
                     b.Navigation("Orders");
                 });
 #pragma warning restore 612, 618

@@ -10,5 +10,6 @@
         public int TotalQuantity { get; set; }
         public ICollection<ProductImage> Images { get; set; }
         public Product MainProduct { get; set; }
+        public ICollection<OrderItem> OrderItems { get; set; }
     }
 }

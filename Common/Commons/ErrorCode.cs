@@ -53,6 +53,9 @@ namespace Common.Commons
         // Custom Business Logic
         InvalidOperation,
         QuotaExceeded,
-        InvalidInvitationCode
+        InvalidInvitationCode,
+
+        InvalidSize,
+        InsufficientStock
     }
 }

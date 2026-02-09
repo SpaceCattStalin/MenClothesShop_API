@@ -7,7 +7,8 @@ using Repositories.Models;
 namespace Repositories.ApplicationDbContext
 {
 
-    public class AppDbContext : IdentityDbContext<User>
+    //public class AppDbContext : IdentityDbContext<User>
+    public class AppDbContext : DbContext
     {
         //private readonly HashSet<Type> entityTypes;
 
@@ -32,20 +33,53 @@ namespace Repositories.ApplicationDbContext
         public AppDbContext(DbContextOptions options) : base(options)
         {
         }
-        //public DbSet<User> Users { get; set; }
+
+        public DbSet<User> Users { get; set; }
+        public DbSet<Category> Category { get; set; }
         public DbSet<Product> Products { get; set; }
         public DbSet<ProductVariant> ProductVariants { get; set; }
         public DbSet<ProductSize> ProductSizes { get; set; }
         public DbSet<Color> Colors { get; set; }
         public DbSet<ProductImage> ProductImages { get; set; }
         public DbSet<Size> Sizes { get; set; }
+        public DbSet<Cart> Cart { get; set; }
+        public DbSet<CartItem> CartItem { get; set; }
+        public DbSet<Order> Orders { get; set; }
+        public DbSet<OrderItem> Items { get; set; }
+        public DbSet<Payment> Payments { get; set; }
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
 
+            builder.Entity<Cart>()
+                .HasOne(e => e.User)
+                    .WithOne(u => u.Cart)
+                        .HasForeignKey<Cart>(c => c.UserId);
+
+            builder.Entity<CartItem>()
+                .HasOne(ci => ci.Cart)
+                    .WithMany(c => c.Items)
+                        .HasForeignKey(ci => ci.CartId);
+
+            builder.Entity<CartItem>()
+                 .HasOne(ci => ci.ProductVariant)
+                     .WithMany()
+                         .HasForeignKey(ci => ci.ProductVariantId);
+
+            builder.Entity<CartItem>()
+                .HasOne(ci => ci.Size)
+                    .WithMany()
+                        .HasForeignKey(ci => ci.SizeId);
+
+
             builder.Entity<Product>()
                 .HasMany<ProductVariant>(e => e.Variants)
                     .WithOne(v => v.MainProduct);
+
+            builder.Entity<Product>()
+                .HasOne(e => e.Category)
+                    .WithMany(c => c.Products)
+                        .HasForeignKey(e => e.CatId);
 
             builder.Entity<ProductVariant>()
                 .HasOne(e => e.MainProduct)
@@ -56,6 +90,11 @@ namespace Repositories.ApplicationDbContext
                 .HasOne(e => e.Color)
                 .WithMany(c => c.Variants)
                 .HasForeignKey(e => e.ColorCode);
+
+            builder.Entity<ProductImage>()
+                .HasOne(e => e.Variant)
+                .WithMany(v => v.Images)
+                .HasForeignKey(e => e.VariantId);
 
             builder.Entity<ProductVariant>()
                 .HasMany(e => e.Sizes)
@@ -74,6 +113,24 @@ namespace Repositories.ApplicationDbContext
                 .HasOne(ps => ps.Size)
                 .WithMany()
                 .HasForeignKey(ps => ps.SizeId);
+
+            builder.Entity<Order>()
+                .HasOne(e => e.User)
+                .WithMany(u => u.Orders)
+                .HasForeignKey(e => e.UserId);
+
+            builder.Entity<OrderItem>()
+                .HasKey(e => new { e.OrderId, e.ProductVariantId });
+
+            builder.Entity<OrderItem>()
+                .HasOne(e => e.Order)
+                .WithMany(o => o.OrderItems)
+                .HasForeignKey(e => e.OrderId);
+
+            builder.Entity<OrderItem>()
+                .HasOne(e => e.ProductVariant)
+                .WithMany(pv => pv.OrderItems)
+                .HasForeignKey(e => e.ProductVariantId);
         }
 
         public static string GetConnectionString(string connectionStringName)
@@ -92,105 +149,126 @@ namespace Repositories.ApplicationDbContext
               => optionsBuilder.UseMySql(GetConnectionString("MySQLConnection"), new MySqlServerVersion(new Version("5.2.1")))
                     .UseSeeding(static (context, _) =>
                     {
+                        if (!context.Set<Category>().Any())
+                        {
+                            context.Set<Category>().AddRange(
+                                new Category { Id = 1, Name = "Cà Vạt" },
+                                new Category { Id = 2, Name = "Túi Đeo Chéo" },
+                                new Category { Id = 3, Name = "Áo Thun" }
+                            );
+                        }
+                        context.SaveChanges();
 
                         if (!context.Set<Product>().Any())
                         {
+                            var catTie = context.Set<Category>().First(c => c.Name == "Cà Vạt");
+                            var catBag = context.Set<Category>().First(c => c.Name == "Túi Đeo Chéo");
+                            var catTshirt = context.Set<Category>().First(c => c.Name == "Áo Thun");
+
                             context.Set<Product>().AddRange(
                                 new Product
                                 {
                                     Name = "Cà Vạt Nam Bản Trung Aristino ATI001S0H2",
-                                    Price = 199000
+                                    Price = 199000,
+                                    CatId = catTie.Id,
                                 },
                                 new Product
                                 {
                                     Name = "Cà Vạt Nam Lụa Trơn Aristino ATI002S0H3",
-                                    Price = 179000
+                                    Price = 179000,
+                                    CatId = catTie.Id,
                                 },
                                 new Product
                                 {
                                     Name = "Cà Vạt Nam Kẻ Sọc Cao Cấp Aristino ATI003S0H1",
-                                    Price = 219000
+                                    Price = 219000,
+                                    CatId = catTie.Id,
                                 },
                                 new Product
                                 {
                                     Name = "Cà Vạt Nam Họa Tiết Chấm Bi Aristino ATI004S0H5",
-                                    Price = 189000
+                                    Price = 189000,
+                                    CatId = catTie.Id,
                                 },
                                 new Product
                                 {
                                     Name = "Cà Vạt Nam Lụa Hàn Quốc Aristino ATI005S0H7",
-                                    Price = 249000
+                                    Price = 249000,
+                                    CatId = catTie.Id,
                                 },
                                 new Product
                                 {
                                     Name = "Cà Vạt Nam Bản Nhỏ Công Sở Aristino ATI006S0H4",
-                                    Price = 169000
+                                    Price = 169000,
+                                    CatId = catTie.Id,
                                 },
                                 new Product
                                 {
                                     Name = "Túi Đeo Chéo Nam Canvas Đen Aristino ACB0010S2",
-                                    Price = 459000
+                                    Price = 459000,
+                                    CatId = catBag.Id,
                                 },
                                 new Product
                                 {
                                     Name = "Túi Đeo Chéo Nam Da PU Cao Cấp Aristino ACB0020S1",
-                                    Price = 589000
+                                    Price = 589000,
+                                    CatId = catBag.Id,
                                 },
                                 new Product
                                 {
                                     Name = "Túi Đeo Chéo Nam Thể Thao Chống Nước Aristino ACB0030S3",
-                                    Price = 399000
+                                    Price = 399000,
+                                    CatId = catBag.Id,
                                 },
                                 new Product
                                 {
                                     Name = "Túi Đeo Chéo Nam Phong Cách Hàn Quốc Aristino ACB0040S5",
-                                    Price = 499000
+                                    Price = 499000,
+                                    CatId = catBag.Id,
                                 },
                                 new Product
                                 {
                                     Name = "Túi Đeo Chéo Nam Mini Gọn Nhẹ Aristino ACB0050S4",
-                                    Price = 349000
+                                    Price = 349000,
+                                    CatId = catBag.Id,
                                 },
                                 new Product
                                 {
                                     Name = "Áo Thun Nam Cổ Tròn Trơn Aristino Basic 1TSS01S",
-                                    Price = 259000
-                                },
-                                new Product
-                                {
-                                    Name = "Áo Thun Nam Cổ Tròn Trơn Aristino Basic 1TSS01S",
-                                    Price = 259000
-                                },
-                                new Product
-                                {
-                                    Name = "Áo Thun Nam Cổ Tròn Trơn Aristino Basic 1TSS01S",
-                                    Price = 259000
+                                    Price = 259000,
+                                    CatId = catTshirt.Id,
                                 },
                                 new Product
                                 {
                                     Name = "Áo Thun Nam Cotton 100% Aristino 1TSS02S",
-                                    Price = 299000
+                                    Price = 299000,
+                                    CatId = catTshirt.Id,
                                 },
                                 new Product
                                 {
                                     Name = "Áo Thun Nam In Logo Aristino Sport 1TSS03S",
-                                    Price = 279000
+                                    Price = 279000,
+                                    CatId = catTshirt.Id,
                                 },
                                 new Product
                                 {
                                     Name = "Áo Thun Nam Form Slimfit Aristino 1TSS05S",
-                                    Price = 289000
+                                    Price = 289000,
+                                    CatId = catTshirt.Id,
                                 },
                                 new Product
                                 {
                                     Name = "Áo Thun Nam Thoáng Khí Aristino Active 1TSS06S",
-                                    Price = 319000
+                                    Price = 319000,
+                                    CatId = catTshirt.Id,
                                 }, new Product
                                 {
                                     Name = "Áo Thun Nam Kẻ Sọc Aristino Trend 1TSS07S",
-                                    Price = 269000
+                                    Price = 269000,
+                                    CatId = catTshirt.Id,
                                 });
                         }
+                        context.SaveChanges();
 
                         if (!context.Set<Color>().Any())
                         {
@@ -256,6 +334,7 @@ namespace Repositories.ApplicationDbContext
                                         new ProductSize { SizeId = size0.Id }
                                     }
                                 },
+
 
                                 // T-shirt - Black
                                 new ProductVariant
