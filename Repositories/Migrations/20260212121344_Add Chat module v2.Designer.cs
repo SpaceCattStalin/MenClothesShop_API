@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Repositories.ApplicationDbContext;
 
@@ -11,9 +12,11 @@ using Repositories.ApplicationDbContext;
 namespace Repositories.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260212121344_Add Chat module v2")]
+    partial class AddChatmodulev2
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -190,28 +193,6 @@ namespace Repositories.Migrations
 
                     b.Property<DateTime>("Created")
                         .HasColumnType("datetime");
-
-                    b.Property<string>("DeliveryAddress")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.Property<string>("DeliveryCity")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.Property<string>("DeliveryDistrict")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.Property<decimal?>("DeliveryLatitude")
-                        .HasColumnType("decimal(65,30)");
-
-                    b.Property<decimal?>("DeliveryLongitude")
-                        .HasColumnType("decimal(65,30)");
-
-                    b.Property<string>("DeliveryWard")
-                        .IsRequired()
-                        .HasColumnType("longtext");
 
                     b.Property<decimal>("Total")
                         .HasColumnType("decimal(65,30)");

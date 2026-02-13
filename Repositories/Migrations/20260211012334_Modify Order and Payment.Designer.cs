@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Repositories.ApplicationDbContext;
 
@@ -11,9 +12,11 @@ using Repositories.ApplicationDbContext;
 namespace Repositories.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260211012334_Modify Order and Payment")]
+    partial class ModifyOrderandPayment
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -66,9 +69,6 @@ namespace Repositories.Migrations
 
                     b.Property<int>("SizeId")
                         .HasColumnType("int");
-
-                    b.Property<decimal>("UnitPrice")
-                        .HasColumnType("decimal(65,30)");
 
                     b.HasKey("Id");
 
@@ -123,63 +123,6 @@ namespace Repositories.Migrations
                     b.ToTable("Colors");
                 });
 
-            modelBuilder.Entity("Repositories.Models.Conversation", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("CreateAt")
-                        .HasColumnType("datetime");
-
-                    b.Property<DateTime>("UpdateAt")
-                        .HasColumnType("datetime");
-
-                    b.Property<int>("UserId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("Conversations");
-                });
-
-            modelBuilder.Entity("Repositories.Models.Message", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Content")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.Property<int>("ConversationId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("SenderId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("SenderType")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("SentAt")
-                        .HasColumnType("datetime");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ConversationId");
-
-                    b.HasIndex("SenderId");
-
-                    b.ToTable("Messages");
-                });
-
             modelBuilder.Entity("Repositories.Models.Order", b =>
                 {
                     b.Property<int>("Id")
@@ -191,30 +134,8 @@ namespace Repositories.Migrations
                     b.Property<DateTime>("Created")
                         .HasColumnType("datetime");
 
-                    b.Property<string>("DeliveryAddress")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.Property<string>("DeliveryCity")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.Property<string>("DeliveryDistrict")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.Property<decimal?>("DeliveryLatitude")
-                        .HasColumnType("decimal(65,30)");
-
-                    b.Property<decimal?>("DeliveryLongitude")
-                        .HasColumnType("decimal(65,30)");
-
-                    b.Property<string>("DeliveryWard")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.Property<decimal>("Total")
-                        .HasColumnType("decimal(65,30)");
+                    b.Property<int>("Total")
+                        .HasColumnType("int");
 
                     b.Property<int>("UserId")
                         .HasColumnType("int");
@@ -234,23 +155,12 @@ namespace Repositories.Migrations
                     b.Property<int>("ProductVariantId")
                         .HasColumnType("int");
 
-                    b.Property<int>("SizeId")
-                        .HasColumnType("int");
-
                     b.Property<int>("Quantity")
                         .HasColumnType("int");
 
-                    b.Property<decimal>("Total")
-                        .HasColumnType("decimal(65,30)");
-
-                    b.Property<decimal>("UnitPrice")
-                        .HasColumnType("decimal(65,30)");
-
-                    b.HasKey("OrderId", "ProductVariantId", "SizeId");
+                    b.HasKey("OrderId", "ProductVariantId");
 
                     b.HasIndex("ProductVariantId");
-
-                    b.HasIndex("SizeId");
 
                     b.ToTable("Items");
                 });
@@ -263,9 +173,6 @@ namespace Repositories.Migrations
 
                     MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("PaymentId"));
 
-                    b.Property<decimal>("Amount")
-                        .HasColumnType("decimal(65,30)");
-
                     b.Property<DateTime>("Created")
                         .HasColumnType("datetime");
 
@@ -275,14 +182,9 @@ namespace Repositories.Migrations
                     b.Property<int>("PaymentType")
                         .HasColumnType("int");
 
-                    b.Property<string>("TransactionId")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
                     b.HasKey("PaymentId");
 
-                    b.HasIndex("OrderId")
-                        .IsUnique();
+                    b.HasIndex("OrderId");
 
                     b.ToTable("Payments");
                 });
@@ -458,36 +360,6 @@ namespace Repositories.Migrations
                     b.Navigation("Size");
                 });
 
-            modelBuilder.Entity("Repositories.Models.Conversation", b =>
-                {
-                    b.HasOne("Repositories.Models.User", "User")
-                        .WithMany("Conversations")
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("User");
-                });
-
-            modelBuilder.Entity("Repositories.Models.Message", b =>
-                {
-                    b.HasOne("Repositories.Models.Conversation", "Conversation")
-                        .WithMany("Messages")
-                        .HasForeignKey("ConversationId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Repositories.Models.User", "Sender")
-                        .WithMany()
-                        .HasForeignKey("SenderId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Conversation");
-
-                    b.Navigation("Sender");
-                });
-
             modelBuilder.Entity("Repositories.Models.Order", b =>
                 {
                     b.HasOne("Repositories.Models.User", "User")
@@ -513,24 +385,16 @@ namespace Repositories.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Repositories.Models.Size", "Size")
-                        .WithMany()
-                        .HasForeignKey("SizeId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.Navigation("Order");
 
                     b.Navigation("ProductVariant");
-
-                    b.Navigation("Size");
                 });
 
             modelBuilder.Entity("Repositories.Models.Payment", b =>
                 {
                     b.HasOne("Repositories.Models.Order", "Order")
-                        .WithOne("Payment")
-                        .HasForeignKey("Repositories.Models.Payment", "OrderId")
+                        .WithMany("Payments")
+                        .HasForeignKey("OrderId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -612,17 +476,11 @@ namespace Repositories.Migrations
                     b.Navigation("Variants");
                 });
 
-            modelBuilder.Entity("Repositories.Models.Conversation", b =>
-                {
-                    b.Navigation("Messages");
-                });
-
             modelBuilder.Entity("Repositories.Models.Order", b =>
                 {
                     b.Navigation("OrderItems");
 
-                    b.Navigation("Payment")
-                        .IsRequired();
+                    b.Navigation("Payments");
                 });
 
             modelBuilder.Entity("Repositories.Models.Product", b =>
@@ -643,8 +501,6 @@ namespace Repositories.Migrations
                 {
                     b.Navigation("Cart")
                         .IsRequired();
-
-                    b.Navigation("Conversations");
 
                     b.Navigation("Orders");
                 });

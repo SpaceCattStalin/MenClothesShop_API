@@ -10,6 +10,7 @@ namespace API.Features
         public record ProductVariantDTO(
             int variantId,
             string colorHex,
+            decimal price,
             List<SizeStockDTO> inStock,
             string imgUrl
         );
@@ -25,6 +26,7 @@ namespace API.Features
                     .Where(v => v.MainProductId.Equals(productId))
                     .Select(v =>
                         new ProductVariantDTO(v.Id, v.Color.HexCode,
+                        v.MainProduct.Price,
                         v.Sizes.Select(vs => new SizeStockDTO(vs.Size.Name, vs.Quantity)).ToList(),
                         v.Images.FirstOrDefault().Url
                     ))

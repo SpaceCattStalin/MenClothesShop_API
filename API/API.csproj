@@ -10,6 +10,28 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+		<Compile Remove="SignalRClient\**" />
+		<Content Remove="SignalRClient\**" />
+		<EmbeddedResource Remove="SignalRClient\**" />
+		<None Remove="SignalRClient\**" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<None Remove="webpack.config.js" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<Content Include="webpack.config.js" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<None Include="wwwroot\css\main.4446745231e265a7ab9c.css" />
+		<None Include="wwwroot\index.html" />
+		<None Include="wwwroot\main.4446745231e265a7ab9c.js" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<PackageReference Include="DotNetEnv" Version="3.1.1" />
 		<PackageReference Include="AWSSDK.S3" Version="4.0.18.1" />
 		<PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.0" />
 		<PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="9.0.0" />
@@ -22,6 +44,7 @@
 			<PrivateAssets>all</PrivateAssets>
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
+		<PackageReference Include="payOS" Version="2.0.1" />
 		<PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
 	</ItemGroup>
 

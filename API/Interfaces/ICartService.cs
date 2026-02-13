@@ -8,5 +8,6 @@ namespace API.Interfaces
         Task<List<GetCartItemDTO>> GetCartItemsAsync(int userId);
         Task<bool> AddToCartAsync(int userId, int variantId, int sizeId, int quantity);
         Task<Cart> GetOrCreateCartAsync(int userId);
+        Task ClearCart(int userId);
     }
 }

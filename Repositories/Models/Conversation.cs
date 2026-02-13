@@ -1,0 +1,16 @@
+﻿using System;
+using System.Collections;
+using System.Collections.Generic;
+
+namespace Repositories.Models
+{
+    public class Conversation
+    {
+        public int Id { get; set; }
+        public int UserId { get; set; }
+        public User User { get; set; }
+        public DateTime CreateAt { get; set; }
+        public DateTime UpdateAt { get; set; }
+        public ICollection<Message> Messages { get; set; }
+    }
+}

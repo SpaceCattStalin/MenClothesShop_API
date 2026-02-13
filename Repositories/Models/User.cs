@@ -12,5 +12,7 @@ namespace Repositories.Models
 
         public ICollection<Order> Orders { get; set; }
         public Cart Cart { get; set; }
+
+        public ICollection<Conversation> Conversations { get; set; }
     }
 }

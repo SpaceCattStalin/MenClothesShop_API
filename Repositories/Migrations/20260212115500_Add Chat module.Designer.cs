@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Repositories.ApplicationDbContext;
 
@@ -11,9 +12,11 @@ using Repositories.ApplicationDbContext;
 namespace Repositories.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260212115500_Add Chat module")]
+    partial class AddChatmodule
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -123,63 +126,6 @@ namespace Repositories.Migrations
                     b.ToTable("Colors");
                 });
 
-            modelBuilder.Entity("Repositories.Models.Conversation", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("CreateAt")
-                        .HasColumnType("datetime");
-
-                    b.Property<DateTime>("UpdateAt")
-                        .HasColumnType("datetime");
-
-                    b.Property<int>("UserId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("Conversations");
-                });
-
-            modelBuilder.Entity("Repositories.Models.Message", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Content")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.Property<int>("ConversationId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("SenderId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("SenderType")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("SentAt")
-                        .HasColumnType("datetime");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ConversationId");
-
-                    b.HasIndex("SenderId");
-
-                    b.ToTable("Messages");
-                });
-
             modelBuilder.Entity("Repositories.Models.Order", b =>
                 {
                     b.Property<int>("Id")
@@ -190,28 +136,6 @@ namespace Repositories.Migrations
 
                     b.Property<DateTime>("Created")
                         .HasColumnType("datetime");
-
-                    b.Property<string>("DeliveryAddress")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.Property<string>("DeliveryCity")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.Property<string>("DeliveryDistrict")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.Property<decimal?>("DeliveryLatitude")
-                        .HasColumnType("decimal(65,30)");
-
-                    b.Property<decimal?>("DeliveryLongitude")
-                        .HasColumnType("decimal(65,30)");
-
-                    b.Property<string>("DeliveryWard")
-                        .IsRequired()
-                        .HasColumnType("longtext");
 
                     b.Property<decimal>("Total")
                         .HasColumnType("decimal(65,30)");
@@ -458,36 +382,6 @@ namespace Repositories.Migrations
                     b.Navigation("Size");
                 });
 
-            modelBuilder.Entity("Repositories.Models.Conversation", b =>
-                {
-                    b.HasOne("Repositories.Models.User", "User")
-                        .WithMany("Conversations")
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("User");
-                });
-
-            modelBuilder.Entity("Repositories.Models.Message", b =>
-                {
-                    b.HasOne("Repositories.Models.Conversation", "Conversation")
-                        .WithMany("Messages")
-                        .HasForeignKey("ConversationId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Repositories.Models.User", "Sender")
-                        .WithMany()
-                        .HasForeignKey("SenderId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Conversation");
-
-                    b.Navigation("Sender");
-                });
-
             modelBuilder.Entity("Repositories.Models.Order", b =>
                 {
                     b.HasOne("Repositories.Models.User", "User")
@@ -612,11 +506,6 @@ namespace Repositories.Migrations
                     b.Navigation("Variants");
                 });
 
-            modelBuilder.Entity("Repositories.Models.Conversation", b =>
-                {
-                    b.Navigation("Messages");
-                });
-
             modelBuilder.Entity("Repositories.Models.Order", b =>
                 {
                     b.Navigation("OrderItems");
@@ -643,8 +532,6 @@ namespace Repositories.Migrations
                 {
                     b.Navigation("Cart")
                         .IsRequired();
-
-                    b.Navigation("Conversations");
 
                     b.Navigation("Orders");
                 });

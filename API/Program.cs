@@ -2,12 +2,15 @@
 using Amazon.Runtime;
 using Amazon.S3;
 using API.Background_Tasks;
+using API.Hubs;
 using API.Features;
 using API.Interfaces;
 using API.Services;
 using API.Services.API.Services;
+using Microsoft.AspNetCore.Http.Json;
 using Repositories.ApplicationDbContext;
 using Services;
+using System.Text.Json.Serialization;
 
 namespace MenClothesShop_API
 {
@@ -16,6 +19,7 @@ namespace MenClothesShop_API
         public static async Task Main(string[] args)
         {
 
+            DotNetEnv.Env.Load();
             var builder = WebApplication.CreateBuilder(args);
 
             // Add services to the container.
@@ -33,8 +37,18 @@ namespace MenClothesShop_API
             builder.Services.AddScoped<ICartService, CartService>();
             builder.Services.AddScoped<IInventoryService, InventoryService>();
             builder.Services.AddScoped<ISizeService, SizeService>();
+            builder.Services.AddScoped<IOrderService, OrderService>();
+            builder.Services.AddScoped<PaymentService>();
 
-            builder.Services.AddHostedService<CartExpirationService>();
+            builder.Services.AddSignalR();
+
+            builder.Services.Configure<Microsoft.AspNetCore.Http.Json.JsonOptions>(options =>
+            {
+                options.SerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
+            });
+
+
+            //builder.Services.AddHostedService<CartExpirationService>();
 
             var credentials = new BasicAWSCredentials(
                     builder.Configuration.GetValue<string>("MinIO:AccessKey"),
@@ -77,8 +91,13 @@ namespace MenClothesShop_API
             ProductByCategoryEndpoint.MapEndpoints(app);
             ProductDetailEndpoint.MapEndpoint(app);
             CartEndpoints.MapEndpoint(app);
+            ChatEndpoints.MapEndpoint(app);
             //AddToCartEndpoints.MapEndpoint(app);
 
+            app.MapHub<Chathub>("/hub");
+
+            app.UseDefaultFiles();
+            app.UseStaticFiles();
 
             app.Run();
         }

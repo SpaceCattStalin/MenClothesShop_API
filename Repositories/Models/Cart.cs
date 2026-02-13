@@ -1,4 +1,7 @@
-﻿namespace Repositories.Models
+﻿using System;
+using System.Collections.Generic;
+
+namespace Repositories.Models
 {
     public class Cart
     {

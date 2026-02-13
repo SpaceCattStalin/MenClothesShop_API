@@ -41,7 +41,7 @@ namespace API.Background_Tasks
             var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
             var inventoryService = scope.ServiceProvider.GetRequiredService<IInventoryService>();
 
-            var expirationTime = DateTime.UtcNow.AddMinutes(1);
+            var expirationTime = DateTime.UtcNow.AddMinutes(120);
 
             var expiredCartItems = await dbContext.CartItem.Where(ci => ci.Cart.UpdatedAt < expirationTime).ToListAsync();
 

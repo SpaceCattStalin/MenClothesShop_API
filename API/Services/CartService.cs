@@ -1,4 +1,5 @@
 ﻿using API.Interfaces;
+using Common.Commons;
 using Microsoft.EntityFrameworkCore;
 using Repositories.ApplicationDbContext;
 using Repositories.Models;
@@ -9,10 +10,12 @@ namespace API.Services
     public class CartService : ICartService
     {
         private readonly AppDbContext _context;
+        private readonly ILogger<CartService> _logger;
 
-        public CartService(AppDbContext context)
+        public CartService(AppDbContext context, ILogger<CartService> logger)
         {
             _context = context;
+            _logger = logger;
         }
 
         public async Task<List<GetCartItemDTO>> GetCartItemsAsync(int userId)
@@ -24,6 +27,7 @@ namespace API.Services
                     ci.ProductVariant.MainProduct.Name + " " + ci.ProductVariant.Color.Name + " " + ci.Size.Name,
                     ci.Quantity,
                     ci.ProductVariant.MainProduct.Price * ci.Quantity,
+                    ci.UnitPrice,
                     ci.ProductVariant.Images.FirstOrDefault().Url
                 ))
                 .ToListAsync();
@@ -57,6 +61,8 @@ namespace API.Services
                                         && ci.ProductVariantId == variantId
                                         && ci.SizeId == sizeId);
 
+            var variant = await _context.ProductVariants.Include(v => v.MainProduct).FirstOrDefaultAsync(v => v.Id.Equals(variantId));
+
             if (existingItem != null)
             {
                 existingItem.Quantity += quantity;
@@ -68,13 +74,32 @@ namespace API.Services
                     CartId = cart.Id,
                     ProductVariantId = variantId,
                     SizeId = sizeId,
-                    Quantity = quantity
+                    Quantity = quantity,
+                    UnitPrice = variant.MainProduct.Price
                 };
                 _context.CartItem.Add(newItem);
             }
 
+            var now = DateTime.UtcNow;
+            var vietnamTime = Utils.UtcToLocalTimeZone(now);
+
+            cart.UpdatedAt = vietnamTime;
             await _context.SaveChangesAsync();
             return true;
+        }
+
+        public async Task ClearCart(int userId)
+        {
+            var items = await _context.CartItem
+                .Include(i => i.Cart)
+                .Where(ci => ci.Cart.UserId.Equals(userId))
+                .ToListAsync();
+
+            if (items.Any())
+            {
+                _context.CartItem.RemoveRange(items);
+                await _context.SaveChangesAsync();
+            }
         }
     }
 }
