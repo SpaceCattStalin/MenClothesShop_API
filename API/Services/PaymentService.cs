@@ -1,4 +1,4 @@
-﻿using API.Interfaces;
+using API.Interfaces;
 using Common.Commons;
 using Microsoft.EntityFrameworkCore;
 using PayOS;
@@ -48,8 +48,8 @@ namespace API.Services
                     Created = Utils.UtcToLocalTimeZone(DateTime.UtcNow),
                     PaymentType = PaymentStatus.Pending
                 };
-                var cancelUrl = "http://example.com";
-                var returnUrl = "http://example.com";
+                var cancelUrl = "https://yourapp.com/payment/return";
+                var returnUrl = "https://yourapp.com/payment/return";
                 var buyerEmail = user.UserName;
                 var buyerName = user.UserName;
 
@@ -61,12 +61,13 @@ namespace API.Services
                 var request = new CreatePaymentLinkRequest
                 {
                     OrderCode = order.Id,
-                    Amount = (long)order.Total,
+                    //Amount = (long)order.Total,
+                    Amount = 10000,
                     Description = $"Order #{order.Id} for User #{user.UserId}",
                     BuyerEmail = user.UserName,
                     BuyerName = user.UserName,
-                    CancelUrl = "http://example.com",
-                    ReturnUrl = "http://example.com",
+                    CancelUrl = cancelUrl,
+                    ReturnUrl = returnUrl,
                     Signature = CreateSignature(query)
                 };
 
@@ -99,13 +100,13 @@ namespace API.Services
             var verifiedData = await _payOS.Webhooks.VerifyAsync(webhook);
             try
             {
+                var orderId = (int)verifiedData.OrderCode;
+
+                var payment = await _context.Payments
+                    .FirstOrDefaultAsync(p => p.OrderId == orderId);
+
                 if (verifiedData.Code.Equals("00"))
                 {
-                    var orderId = (int)verifiedData.OrderCode;
-
-                    var payment = await _context.Payments
-                        .FirstOrDefaultAsync(p => p.OrderId == orderId);
-
                     payment.PaymentType = PaymentStatus.Completed;
 
                     var match = Regex.Match(verifiedData.Description, @"User\s+#?\d+");
@@ -116,6 +117,10 @@ namespace API.Services
                         await _cartService.ClearCart(int.Parse(userId.Split(' ')[1]));
                     }
                 }
+                //else
+                //{
+                //    payment.PaymentType = PaymentStatus.Canceled;
+                //}
                 await _context.SaveChangesAsync();
                 return verifiedData;
             }
@@ -124,6 +129,16 @@ namespace API.Services
                 _logger.LogError(ex.Message);
                 return verifiedData;
             }
+        }
+
+        private static bool IsValidEmail(string email)
+        {
+            if (string.IsNullOrWhiteSpace(email) || email.Length > 254) return false;
+            var at = email.IndexOf('@');
+            if (at <= 0 || at == email.Length - 1) return false;
+            var dot = email.LastIndexOf('.');
+            if (dot <= at + 1 || dot == email.Length - 1) return false;
+            return true;
         }
 
         private string CreateSignature(string query)

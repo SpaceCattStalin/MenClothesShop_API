@@ -342,7 +342,6 @@ namespace Repositories.ApplicationDbContext
                                {
                                    MainProductId = tie.Id,
                                    ColorCode = black.Id,
-                                   TotalQuantity = 50,
                                    Sizes = new List<ProductSize>
                                    {
                                         new ProductSize { SizeId = size0.Id }
@@ -355,7 +354,6 @@ namespace Repositories.ApplicationDbContext
                                {
                                    MainProductId = tshirt.Id,
                                    ColorCode = black.Id,
-                                   TotalQuantity = 100,
                                    Sizes = new List<ProductSize>
                                    {
                                         new ProductSize { SizeId = s.Id },
@@ -370,7 +368,6 @@ namespace Repositories.ApplicationDbContext
                                {
                                    MainProductId = tshirt.Id,
                                    ColorCode = white.Id,
-                                   TotalQuantity = 80,
                                    Sizes = new List<ProductSize>
                                    {
                                         new ProductSize { SizeId = s.Id },
@@ -384,7 +381,6 @@ namespace Repositories.ApplicationDbContext
                                {
                                    MainProductId = bag.Id,
                                    ColorCode = black.Id,
-                                   TotalQuantity = 30,
                                    Sizes = new List<ProductSize>
                                    {
                                         new ProductSize { SizeId = size0.Id }

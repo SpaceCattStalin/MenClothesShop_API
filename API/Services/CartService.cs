@@ -1,4 +1,4 @@
-﻿using API.Interfaces;
+using API.Interfaces;
 using Common.Commons;
 using Microsoft.EntityFrameworkCore;
 using Repositories.ApplicationDbContext;
@@ -23,12 +23,13 @@ namespace API.Services
             return await _context.CartItem
                 .Where(ci => ci.Cart.UserId == userId)
                 .Select(ci => new GetCartItemDTO(
+                    ci.Id,
                     ci.ProductVariantId,
                     ci.ProductVariant.MainProduct.Name + " " + ci.ProductVariant.Color.Name + " " + ci.Size.Name,
                     ci.Quantity,
                     ci.ProductVariant.MainProduct.Price * ci.Quantity,
                     ci.UnitPrice,
-                    ci.ProductVariant.Images.FirstOrDefault().Url
+                    ci.ProductVariant.Images.Any() ? ci.ProductVariant.Images.First().Url : ""
                 ))
                 .ToListAsync();
         }

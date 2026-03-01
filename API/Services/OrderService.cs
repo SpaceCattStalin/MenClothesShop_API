@@ -1,4 +1,4 @@
-﻿using API.Interfaces;
+using API.Interfaces;
 using Common.Commons;
 using Microsoft.EntityFrameworkCore;
 using Repositories.ApplicationDbContext;
@@ -15,7 +15,7 @@ namespace API.Services
             _context = context;
         }
 
-        public async Task<Order> CreateOrderFromCartAsync(int userId)
+        public async Task<Order> CreateOrderFromCartAsync(int userId, string shippingAddress)
         {
             try
             {
@@ -29,6 +29,7 @@ namespace API.Services
                 var order = new Order
                 {
                     UserId = userId,
+                    To = shippingAddress ?? "",
                     Total = cart.Items.Aggregate(0m, (total, item) => total + item.UnitPrice * item.Quantity),
                     Created = vietnamTime,
                     OrderItems = new Collection<OrderItem>()

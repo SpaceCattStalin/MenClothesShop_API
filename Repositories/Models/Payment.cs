@@ -16,7 +16,6 @@ namespace Repositories.Models
     public enum PaymentStatus
     {
         Pending,
-        Completed,
-        Canceled
+        Completed
     }
 }

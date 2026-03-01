@@ -12,23 +12,23 @@ namespace API.Features
             string colorHex,
             decimal price,
             List<SizeStockDTO> inStock,
-            string imgUrl
+            List<string> imgUrl
         );
         //public record GetProductDetailResponse(List<ProductVariantDTO> variants);
 
         public static void MapEndpoint(IEndpointRouteBuilder routeBuilder)
         {
-            routeBuilder.MapGet("products/{productId}", async (AppDbContext context, int productId) =>
+            routeBuilder.MapGet("products/{productVariantId}", async (AppDbContext context, int productVariantId) =>
             {
                 try
                 {
                     var res = await context.ProductVariants
-                    .Where(v => v.MainProductId.Equals(productId))
+                    .Where(v => v.MainProductId.Equals(productVariantId))
                     .Select(v =>
                         new ProductVariantDTO(v.Id, v.Color.HexCode,
                         v.MainProduct.Price,
                         v.Sizes.Select(vs => new SizeStockDTO(vs.Size.Name, vs.Quantity)).ToList(),
-                        v.Images.FirstOrDefault().Url
+                        v.Images.Select(i => i.Url).ToList()
                     ))
                     .ToListAsync();
 
@@ -36,7 +36,7 @@ namespace API.Features
                 }
                 catch (Exception ex)
                 {
-                    return ApiResponse.ErrorResult($"Fail to fetch product variant of product with id {productId}", HttpStatusCode.InternalServerError, ErrorCode.InternalServerError);
+                    return ApiResponse.ErrorResult($"Fail to fetch product variant of product with id {productVariantId}", HttpStatusCode.InternalServerError, ErrorCode.InternalServerError);
                 }
             });
         }

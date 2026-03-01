@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.SignalR;
+using Microsoft.AspNetCore.SignalR;
 using Repositories.ApplicationDbContext;
 using API.Hubs;
 using Repositories.Models;
@@ -45,7 +45,14 @@ namespace API.Features
                 conversation.UpdateAt = now;
                 await context.SaveChangesAsync();
 
-                await hubContext.Clients.Group("shop").SendAsync("ReceiveMessage", userId, request.content);
+                var user = await context.Users.AsNoTracking().FirstOrDefaultAsync(u => u.UserId == userId);
+                var userName = user?.UserName ?? "User";
+                await hubContext.Clients.Group("shop").SendAsync(
+                    "ReceiveMessage",
+                    conversation.Id,
+                    userId,
+                    userName,
+                    request.content);
 
                 return Results.Ok(message);
             });
@@ -95,6 +102,23 @@ namespace API.Features
                     .ToListAsync();
 
                 return Results.Ok(conversations);
+            });
+
+            builder.MapGet("shop/conversations/{conversationId}/messages", async (AppDbContext context, int conversationId) =>
+            {
+                var messages = await context.Messages
+                    .Where(m => m.ConversationId == conversationId)
+                    .OrderBy(m => m.SentAt)
+                    .Select(m => new
+                    {
+                        m.Id,
+                        m.Content,
+                        m.SenderId,
+                        m.SenderType,
+                        m.SentAt
+                    })
+                    .ToListAsync();
+                return Results.Ok(messages);
             });
 
             builder.MapPost("shop/reply/{conversationId}", async (

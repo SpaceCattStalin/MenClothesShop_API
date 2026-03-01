@@ -39,12 +39,15 @@ namespace MenClothesShop_API
             builder.Services.AddScoped<ISizeService, SizeService>();
             builder.Services.AddScoped<IOrderService, OrderService>();
             builder.Services.AddScoped<PaymentService>();
+            builder.Services.AddHttpClient<IGeocodingService, VietMapGeocodingService>();
 
             builder.Services.AddSignalR();
+            builder.Services.AddSingleton<Microsoft.AspNetCore.SignalR.IUserIdProvider, API.Hubs.QueryStringUserIdProvider>();
 
             builder.Services.Configure<Microsoft.AspNetCore.Http.Json.JsonOptions>(options =>
             {
                 options.SerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
+                options.SerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
             });
 
 
@@ -89,9 +92,12 @@ namespace MenClothesShop_API
             AuthenticationEndpoints.MapEndpoint(app);
             CategoryEndpoint.MapEndpoint(app);
             ProductByCategoryEndpoint.MapEndpoints(app);
+            AdminEndpoints.MapEndpoint(app);
+            OrderEndpoints.MapEndpoint(app);
             ProductDetailEndpoint.MapEndpoint(app);
             CartEndpoints.MapEndpoint(app);
             ChatEndpoints.MapEndpoint(app);
+            MapEndpoints.MapEndpoint(app);
             //AddToCartEndpoints.MapEndpoint(app);
 
             app.MapHub<Chathub>("/hub");

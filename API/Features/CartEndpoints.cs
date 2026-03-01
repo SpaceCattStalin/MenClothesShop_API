@@ -1,4 +1,4 @@
-﻿using API.Interfaces;
+using API.Interfaces;
 using API.Services;
 using API.Services.API.Services;
 using Common.Commons;
@@ -15,7 +15,8 @@ namespace API.Features
     public static class CartEndpoints
     {
         public record AddToCartRequest(int variantId, string sizeName, int quantity);
-        public record GetCartItemDTO(int prodVarId, string prodVarName, int quantity, decimal total, decimal unitPrice, string imgUrl);
+        public record GetCartItemDTO(int id, int prodVarId, string prodVarName, int quantity, decimal total, decimal unitPrice, string imgUrl);
+        public record UpdateCartItemRequest(int quantity);
         public record ValidationIssue(int prodVarId, string prodVarName,
                         int cartQn,
                         int stockQn,
@@ -24,6 +25,9 @@ namespace API.Features
             bool isValid,
             List<ValidationIssue> issues
         );
+
+        /** Optional shipping address; if omitted, backend uses the user's saved address. */
+        public record CheckoutRequest(string? ShippingAddress);
 
         public static void MapEndpoint(IEndpointRouteBuilder builder)
         {
@@ -111,8 +115,79 @@ namespace API.Features
                 }
             });
 
+            builder.MapPut("cart/item/{cartItemId}", async (AppDbContext db, int userId, int cartItemId, UpdateCartItemRequest request) =>
+            {
+                try
+                {
+                    if (request.quantity < 1)
+                    {
+                        return ApiResponse.ErrorResult("Quantity must be at least 1", HttpStatusCode.BadRequest, ErrorCode.ValidationError);
+                    }
+
+                    var cart = await db.Cart.FirstOrDefaultAsync(c => c.UserId == userId);
+                    if (cart == null)
+                    {
+                        return ApiResponse.ErrorResult("Cart not found", HttpStatusCode.NotFound, ErrorCode.ResourceNotFound);
+                    }
+
+                    var item = await db.CartItem
+                        .FirstOrDefaultAsync(ci => ci.Id == cartItemId && ci.CartId == cart.Id);
+                    if (item == null)
+                    {
+                        return ApiResponse.ErrorResult("Cart item not found", HttpStatusCode.NotFound, ErrorCode.ResourceNotFound);
+                    }
+
+                    item.Quantity = request.quantity;
+                    cart.UpdatedAt = DateTime.UtcNow;
+                    await db.SaveChangesAsync();
+
+                    return ApiResponse.SuccessResult(HttpStatusCode.Ok, "Cart item quantity updated");
+                }
+                catch (Exception ex)
+                {
+                    return ApiResponse.ErrorResult(
+                        $"Failed to update cart item: {ex.Message}",
+                        HttpStatusCode.InternalServerError,
+                        ErrorCode.InternalServerError);
+                }
+            });
+
+            builder.MapDelete("cart/item/{cartItemId}", async (AppDbContext db, int userId, int cartItemId) =>
+            {
+                try
+                {
+                    var cart = await db.Cart.FirstOrDefaultAsync(c => c.UserId == userId);
+                    if (cart == null)
+                    {
+                        return ApiResponse.ErrorResult("Cart not found", HttpStatusCode.NotFound, ErrorCode.ResourceNotFound);
+                    }
+
+                    var item = await db.CartItem
+                        .FirstOrDefaultAsync(ci => ci.Id == cartItemId && ci.CartId == cart.Id);
+                    if (item == null)
+                    {
+                        return ApiResponse.ErrorResult("Cart item not found", HttpStatusCode.NotFound, ErrorCode.ResourceNotFound);
+                    }
+
+                    db.CartItem.Remove(item);
+                    cart.UpdatedAt = DateTime.UtcNow;
+                    await db.SaveChangesAsync();
+
+                    return ApiResponse.SuccessResult(HttpStatusCode.Ok, "Cart item removed");
+                }
+                catch (Exception ex)
+                {
+                    return ApiResponse.ErrorResult(
+                        $"Failed to remove cart item: {ex.Message}",
+                        HttpStatusCode.InternalServerError,
+                        ErrorCode.InternalServerError);
+                }
+            });
+
             builder.MapPost("checkout", async (
                 int userId,
+                CheckoutRequest request,
+                AppDbContext db,
                 ICartService cartService,
                 IOrderService orderService,
                 IInventoryService inventoryService,
@@ -121,7 +196,25 @@ namespace API.Features
             {
                 try
                 {
-                    var order = await orderService.CreateOrderFromCartAsync(userId);
+                    var shippingAddress = !string.IsNullOrWhiteSpace(request?.ShippingAddress)
+                        ? request.ShippingAddress.Trim()
+                        : null;
+                    if (string.IsNullOrEmpty(shippingAddress))
+                    {
+                        var user = await db.Users.AsNoTracking().FirstOrDefaultAsync(u => u.UserId == userId);
+                        shippingAddress = !string.IsNullOrWhiteSpace(user?.Address) ? user.Address.Trim() : null;
+                    }
+                    if (string.IsNullOrEmpty(shippingAddress))
+                    {
+                        return Results.Json(
+                            ApiResponse.ErrorResult(
+                                "Shipping address is required. Please set it in your profile or provide it at checkout.",
+                                HttpStatusCode.BadRequest,
+                                ErrorCode.ValidationError),
+                            statusCode: 400);
+                    }
+
+                    var order = await orderService.CreateOrderFromCartAsync(userId, shippingAddress);
                     var paymentLink = await paymentService.CreatePaymentRequest(order);
 
                     return Results.Ok(ApiResponse<CreatePaymentLinkResponse>.SuccessResult(paymentLink));

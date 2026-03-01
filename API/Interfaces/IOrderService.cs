@@ -1,9 +1,9 @@
-﻿using Repositories.Models;
+using Repositories.Models;
 
 namespace API.Interfaces
 {
     public interface IOrderService
     {
-        Task<Order> CreateOrderFromCartAsync(int userId);
+        Task<Order> CreateOrderFromCartAsync(int userId, string shippingAddress);
     }
 }

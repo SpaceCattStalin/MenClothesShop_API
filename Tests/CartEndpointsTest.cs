@@ -114,7 +114,6 @@ namespace API.Tests
                 Name = "Premium Hoodie",
                 Price = 50.00m,
                 CatId = category.Id,
-                TotalQuantity = 100
             };
             db.Products.Add(product);
             db.SaveChanges();
@@ -123,7 +122,6 @@ namespace API.Tests
             {
                 MainProductId = product.Id,
                 ColorCode = color.Id,
-                TotalQuantity = 100
             };
             db.ProductVariants.Add(variant);
             db.SaveChanges();
@@ -132,7 +130,6 @@ namespace API.Tests
             {
                 ProductVariantId = variant.Id,
                 SizeId = size.Id,
-                Quantity = 10
             });
 
             var user = new User { UserId = 2, UserName = "testuser", PasswordHash = "abc" };

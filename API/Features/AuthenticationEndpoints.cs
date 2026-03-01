@@ -14,10 +14,14 @@ namespace API.Features
     public static class AuthenticationEndpoints
     {
         public record Request(string Email, string Password);
+        public record RegisterRequest(string Email, string Password, string Address);
         public record RegisterResult(int userId);
+        public record LoginResult(string Token, string Role);
+        public record UserProfileResult(string Email, string Address);
+        public record UpdateAddressRequest(string Address);
         public static void MapEndpoint(IEndpointRouteBuilder routeBuilder)
         {
-            routeBuilder.MapPost("register", async (Request request, AppDbContext context) =>
+            routeBuilder.MapPost("register", async (RegisterRequest request, AppDbContext context) =>
             {
                 using (var transaction = await context.Database.BeginTransactionAsync())
                 {
@@ -29,7 +33,9 @@ namespace API.Features
                     var user = new User
                     {
                         UserName = request.Email,
-                        PasswordHash = HashPassword(request.Password)
+                        PasswordHash = HashPassword(request.Password),
+                        Address = request.Address ?? "",
+                        Role = "User"
                     };
 
                     context.Users.Add(user);
@@ -59,6 +65,7 @@ namespace API.Features
                 [
                     new(JwtRegisteredClaimNames.Sub, user.UserId.ToString()),
                     new(JwtRegisteredClaimNames.Email, user.UserName),
+                    new("role", user.Role ?? "User"),
                 ];
 
                 var tokenDescriptor = new SecurityTokenDescriptor
@@ -74,7 +81,25 @@ namespace API.Features
 
                 string accessToken = tokenHandler.CreateToken(tokenDescriptor);
 
-                return ApiResponse<string>.SuccessResult(accessToken);
+                return ApiResponse<LoginResult>.SuccessResult(new LoginResult(accessToken, user.Role ?? "User"));
+            });
+
+            routeBuilder.MapGet("profile", async (int userId, AppDbContext context) =>
+            {
+                var user = await context.Users.AsNoTracking().FirstOrDefaultAsync(u => u.UserId == userId);
+                if (user == null)
+                    return ApiResponse.ErrorResult("User not found", HttpStatusCode.NotFound, ErrorCode.ResourceNotFound);
+                return ApiResponse<UserProfileResult>.SuccessResult(new UserProfileResult(user.UserName ?? "", user.Address ?? ""));
+            });
+
+            routeBuilder.MapPut("address", async (int userId, UpdateAddressRequest request, AppDbContext context) =>
+            {
+                var user = await context.Users.FirstOrDefaultAsync(u => u.UserId == userId);
+                if (user == null)
+                    return ApiResponse.ErrorResult("User not found", HttpStatusCode.NotFound, ErrorCode.ResourceNotFound);
+                user.Address = request.Address ?? "";
+                await context.SaveChangesAsync();
+                return ApiResponse.SuccessResult(HttpStatusCode.Ok, "Cập nhật địa chỉ thành công");
             });
         }
 
