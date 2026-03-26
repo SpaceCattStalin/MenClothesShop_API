@@ -1,4 +1,4 @@
-using API.Interfaces;
+﻿using API.Interfaces;
 using API.Services;
 using API.Services.API.Services;
 using Common.Commons;
@@ -208,7 +208,7 @@ namespace API.Features
                     {
                         return Results.Json(
                             ApiResponse.ErrorResult(
-                                "Shipping address is required. Please set it in your profile or provide it at checkout.",
+                                "Địa chỉ nhận hàng là cần thiết .Hãy cập nhật nó ở profile trước khi checkout",
                                 HttpStatusCode.BadRequest,
                                 ErrorCode.ValidationError),
                             statusCode: 400);

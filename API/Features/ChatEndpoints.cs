@@ -20,7 +20,6 @@ namespace API.Features
             {
                 var now = Utils.UtcToLocalTimeZone(DateTime.UtcNow);
 
-                // Find/create conversation
                 var conversation = await context.Conversations
                     .FirstOrDefaultAsync(c => c.UserId == userId)
                     ?? new Conversation { UserId = userId, CreateAt = now };

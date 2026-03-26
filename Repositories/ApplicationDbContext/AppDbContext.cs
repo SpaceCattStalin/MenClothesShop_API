@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -120,6 +120,11 @@ namespace Repositories.ApplicationDbContext
                 .HasOne(e => e.User)
                 .WithMany(u => u.Orders)
                 .HasForeignKey(e => e.UserId);
+
+            builder.Entity<Order>()
+                .HasOne(o => o.Payment)
+                .WithOne(p => p.Order)
+                .HasForeignKey<Payment>(p => p.OrderId);
 
             builder.Entity<OrderItem>()
                 .HasKey(e => new { e.OrderId, e.ProductVariantId, e.SizeId });
